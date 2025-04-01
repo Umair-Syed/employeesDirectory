@@ -1,0 +1,35 @@
+name: employees_directory_syed_umair
+description: "Employees Directory Assignment by Syed Umair Andrabi"
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+isar_version: &isar_version 3.1.0+1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  loggy: ^2.0.3
+  go_router: ^14.8.1
+  bloc: ^9.0.0
+  flutter_bloc: ^9.1.0
+  get_it: ^8.0.3
+  isar: *isar_version
+  isar_flutter_libs: *isar_version
+
+dev_dependencies:
+  isar_generator: *isar_version
+  build_runner: any
+
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
