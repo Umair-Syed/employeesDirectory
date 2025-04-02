@@ -42,6 +42,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(
           _isEditMode ? 'Edit Employee Details' : 'Add Employee Details',
         ),
