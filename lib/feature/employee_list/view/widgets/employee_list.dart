@@ -8,82 +8,97 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart'; // Added for date formatting
 
-class EmployeeList extends StatelessWidget {
+class EmployeeList extends StatefulWidget {
   final List<Employee> employees;
 
   const EmployeeList({super.key, required this.employees});
 
   @override
-  Widget build(BuildContext context) {
+  State<EmployeeList> createState() => _EmployeeListState();
+}
+
+class _EmployeeListState extends State<EmployeeList> {
+  late List<Employee> _currentEmployees;
+  late List<Employee> _previousEmployees;
+
+  @override
+  void initState() {
+    super.initState();
+    _categorizeEmployees();
+  }
+
+  @override
+  void didUpdateWidget(EmployeeList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.employees != widget.employees) {
+      _categorizeEmployees();
+    }
+  }
+
+  void _categorizeEmployees() {
     //MARK: Categorize employees
     final now = DateUtils.dateOnly(DateTime.now());
-    final currentEmployees =
-        employees.where((e) {
+    _currentEmployees =
+        widget.employees.where((e) {
           final toDate = e.to;
-          // Keep if toDate is null or on/after today
           return toDate == null ||
               toDate.isAtSameMomentAs(now) ||
               toDate.isAfter(now);
         }).toList();
-
-    final previousEmployees =
-        employees.where((e) {
+    _previousEmployees =
+        widget.employees.where((e) {
           final toDate = e.to;
-          // Keep if toDate is not null and before today
           return toDate != null && toDate.isBefore(now);
         }).toList();
+  }
 
+  void _handleDismiss(BuildContext context, Employee employee, bool isCurrent) {
+    // Remove from local lists first, otherwise dismissable will not work. need to remove immediately
+    setState(() {
+      if (isCurrent) {
+        _currentEmployees.removeWhere(
+          (e) => e.internalId == employee.internalId,
+        );
+      } else {
+        _previousEmployees.removeWhere(
+          (e) => e.internalId == employee.internalId,
+        );
+      }
+    });
+
+    handleDelete(context, employee);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.surfaceDim,
       child: CustomScrollView(
         slivers: [
-          if (currentEmployees.isNotEmpty) ...[
+          if (_currentEmployees.isNotEmpty) ...[
             SliverToBoxAdapter(
               child: _SectionHeader(title: 'Current employees'),
             ),
             _EmployeeListSliver(
-              list: currentEmployees,
-              onDismissed: (employee) => _handleUndoDelete(context, employee),
+              list: _currentEmployees,
+              onDismissed:
+                  (employee) => _handleDismiss(context, employee, true),
             ),
           ],
-          if (previousEmployees.isNotEmpty) ...[
+          if (_previousEmployees.isNotEmpty) ...[
             SliverToBoxAdapter(
               child: _SectionHeader(title: 'Previous employees'),
             ),
             _EmployeeListSliver(
-              list: previousEmployees,
-              onDismissed: (employee) => _handleUndoDelete(context, employee),
+              list: _previousEmployees,
+              onDismissed:
+                  (employee) => _handleDismiss(context, employee, false),
             ),
           ],
-          if (currentEmployees.isNotEmpty || previousEmployees.isNotEmpty)
+          if (_currentEmployees.isNotEmpty || _previousEmployees.isNotEmpty)
             const SliverToBoxAdapter(child: _SwipeHint()),
         ],
       ),
-    );
-  }
-
-  void _handleUndoDelete(BuildContext context, Employee employee) {
-    if (employee.internalId == null) return; // Guard clause
-
-    final bloc = context.read<EmployeeBloc>();
-    final employeeId = employee.internalId!;
-    Timer? permanentDeleteTimer;
-
-    final messenger = ScaffoldMessenger.of(context);
-    // TODO: App can be killed before the timer is up, so we need to handle this
-    permanentDeleteTimer = Timer(const Duration(seconds: 5), () {
-      bloc.add(EmployeePermanentlyDelete(employeeId));
-    });
-
-    context.showSnackBarMessage(
-      "Employee data has been deleted",
-      messenger: messenger,
-      duration: 5000,
-      actionLabel: "Undo",
-      actionCallback: () {
-        permanentDeleteTimer?.cancel();
-        bloc.add(EmployeeUndoDelete(employeeId));
-      },
     );
   }
 }
@@ -172,9 +187,8 @@ class _EmployeeListItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
-      // Wrap ListTile in Material for background color control
       child: Material(
-        color: Theme.of(context).colorScheme.surface, // Use theme surface color
+        color: Theme.of(context).colorScheme.surface,
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16.0,
@@ -208,11 +222,14 @@ class _EmployeeListItem extends StatelessWidget {
             ],
           ),
           onTap: () async {
-            await Navigator.of(context).push(
+            final result = await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => AddEditEmployeeView(employee: employee),
               ),
             );
+            if (result == 'deleted' && context.mounted) {
+              showSnackBarWithUndo(context, employee);
+            }
           },
         ),
       ),
@@ -238,4 +255,35 @@ class _SwipeHint extends StatelessWidget {
       ),
     );
   }
+}
+
+void handleDelete(BuildContext context, Employee employee) {
+  context.read<EmployeeBloc>().add(EmployeeDelete(employee.internalId!));
+  showSnackBarWithUndo(context, employee);
+}
+
+void showSnackBarWithUndo(BuildContext context, Employee employee) {
+  if (employee.internalId == null) return; // Guard clause
+
+  final bloc = context.read<EmployeeBloc>();
+  final employeeId = employee.internalId!;
+  Timer? permanentDeleteTimer;
+
+  final messenger = ScaffoldMessenger.of(context);
+  // TODO: App can be killed before the timer is up, so we need to handle this
+  permanentDeleteTimer = Timer(const Duration(seconds: 5), () {
+    bloc.add(EmployeePermanentlyDelete(employeeId));
+  });
+
+  context.showSnackBarMessage(
+    "Employee data has been deleted",
+    messenger: messenger,
+    duration: 5000,
+    actionLabel: "Undo",
+    isDarkThemed: true,
+    actionCallback: () {
+      permanentDeleteTimer?.cancel();
+      bloc.add(EmployeeUndoDelete(employeeId));
+    },
+  );
 }

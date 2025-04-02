@@ -14,7 +14,7 @@ class AppView extends StatelessWidget {
         title: 'Employees Directory',
         theme: getTheme(Brightness.light),
         darkTheme: getTheme(Brightness.dark),
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.light,
         home: const EmployeeListScreen(),
       ),
     );

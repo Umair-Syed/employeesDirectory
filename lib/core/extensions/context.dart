@@ -6,6 +6,7 @@ extension Context on BuildContext {
     String message, {
     bool isError = false,
     bool isSuccess = false,
+    bool isDarkThemed = false,
     int? duration,
     String? actionLabel,
     void Function()? actionCallback,
@@ -14,39 +15,64 @@ extension Context on BuildContext {
     final theme = Theme.of(this);
     final Color? foregroundColor;
     final Color? backgroundColor;
+    final BorderRadius borderRadius;
+    final SnackBarBehavior behavior;
 
-    if (isError) {
+    if (isDarkThemed) {
+      foregroundColor = Colors.white;
+      backgroundColor = Colors.black87;
+      borderRadius = BorderRadius.zero;
+      behavior = SnackBarBehavior.fixed;
+    } else if (isError) {
       foregroundColor = theme.colorScheme.onError;
       backgroundColor = theme.colorScheme.error;
+      borderRadius = BorderRadius.circular(8);
+      behavior = SnackBarBehavior.floating;
     } else if (isSuccess) {
       foregroundColor = theme.colorScheme.onSurface;
       backgroundColor = theme.colorScheme.primaryContainer;
+      borderRadius = BorderRadius.circular(8);
+      behavior = SnackBarBehavior.floating;
     } else {
       foregroundColor = theme.colorScheme.onPrimary;
       backgroundColor = theme.colorScheme.primaryContainer;
+      borderRadius = BorderRadius.circular(8);
+      behavior = SnackBarBehavior.floating;
     }
 
     FocusScope.of(this).unfocus();
     final scaffoldMessenger = messenger ?? ScaffoldMessenger.of(this);
+    scaffoldMessenger.clearSnackBars();
 
     scaffoldMessenger.showSnackBar(
       SnackBar(
         duration: Duration(milliseconds: duration ?? 2000),
         backgroundColor: backgroundColor,
+        behavior: behavior,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(
-            color:
-                isError
-                    ? theme.colorScheme.onError
-                    : isSuccess
-                    ? Colors.green.shade700
-                    : theme.colorScheme.onPrimaryContainer,
-            width: 0.7,
-          ),
+          borderRadius: borderRadius,
+          side:
+              isDarkThemed
+                  ? BorderSide.none
+                  : BorderSide(
+                    color:
+                        isError
+                            ? theme.colorScheme.onError
+                            : isSuccess
+                            ? Colors.green.shade700
+                            : theme.colorScheme.onPrimaryContainer,
+                    width: 0.7,
+                  ),
         ),
+        padding:
+            isDarkThemed
+                ? const EdgeInsets.symmetric(horizontal: 16, vertical: 0)
+                : null,
         content: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment:
+              isDarkThemed
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.start,
           children: [
             Expanded(
               child: Text(
@@ -66,7 +92,11 @@ extension Context on BuildContext {
                   },
                   child: Text(
                     actionLabel,
-                    style: TextStyle(color: theme.colorScheme.primary),
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight:
+                          isDarkThemed ? FontWeight.w500 : FontWeight.normal,
+                    ),
                   ),
                 ),
               ),
