@@ -6,6 +6,7 @@ import 'package:employees_directory_syed_umair/core/extensions/context.dart';
 import 'package:employees_directory_syed_umair/feature/add_edit_employee/view/screens/add_edit_employee_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart'; // Added for date formatting
 
 class EmployeeList extends StatelessWidget {
   final List<Employee> employees;
@@ -14,31 +15,50 @@ class EmployeeList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: employees.length,
-      itemBuilder: (context, index) {
-        final employee = employees[index];
-        return ListTile(
-          title: Text(employee.name ?? 'No Name'),
-          subtitle: Text(employee.role?.roleTitle ?? 'No Role'),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            onPressed: () {
-              _showDeleteConfirmation(context, employee);
-            },
-          ),
-          onTap: () async {
-            final result = await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => AddEditEmployeeView(employee: employee),
-              ),
-            );
-            if (result == 'deleted' && context.mounted) {
-              _handleUndoDelete(context, employee);
-            }
-          },
-        );
-      },
+    //MARK: Categorize employees
+    final now = DateUtils.dateOnly(DateTime.now());
+    final currentEmployees =
+        employees.where((e) {
+          final toDate = e.to;
+          // Keep if toDate is null or on/after today
+          return toDate == null ||
+              toDate.isAtSameMomentAs(now) ||
+              toDate.isAfter(now);
+        }).toList();
+
+    final previousEmployees =
+        employees.where((e) {
+          final toDate = e.to;
+          // Keep if toDate is not null and before today
+          return toDate != null && toDate.isBefore(now);
+        }).toList();
+
+    return Container(
+      color: Theme.of(context).colorScheme.surfaceDim,
+      child: CustomScrollView(
+        slivers: [
+          if (currentEmployees.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              child: _SectionHeader(title: 'Current employees'),
+            ),
+            _EmployeeListSliver(
+              list: currentEmployees,
+              onDismissed: (employee) => _handleUndoDelete(context, employee),
+            ),
+          ],
+          if (previousEmployees.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              child: _SectionHeader(title: 'Previous employees'),
+            ),
+            _EmployeeListSliver(
+              list: previousEmployees,
+              onDismissed: (employee) => _handleUndoDelete(context, employee),
+            ),
+          ],
+          if (currentEmployees.isNotEmpty || previousEmployees.isNotEmpty)
+            const SliverToBoxAdapter(child: _SwipeHint()),
+        ],
+      ),
     );
   }
 
@@ -66,49 +86,156 @@ class EmployeeList extends StatelessWidget {
       },
     );
   }
+}
 
-  //TODO: Change to swipe to delete
-  void _showDeleteConfirmation(BuildContext context, Employee employee) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Delete Employee?'),
-          content: Text(
-            'Are you sure you want to delete ${employee.name ?? "this employee"}?',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
 
-                if (employee.internalId != null) {
-                  context.read<EmployeeBloc>().add(
-                    EmployeeDelete(employee.internalId!),
-                  );
-                  _handleUndoDelete(context, employee);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Error: Cannot delete employee without ID.',
-                      ),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: Theme.of(context).primaryColor,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+class _EmployeeListSliver extends StatelessWidget {
+  final List<Employee> list;
+  final ValueChanged<Employee> onDismissed;
+
+  const _EmployeeListSliver({required this.list, required this.onDismissed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverList.separated(
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        final employee = list[index];
+        return _EmployeeListItem(
+          employee: employee,
+          onDismissed: () => onDismissed(employee),
         );
       },
+      separatorBuilder:
+          (context, index) => Divider(
+            height: 1,
+            thickness: 1.3,
+            color: Theme.of(context).colorScheme.surfaceDim,
+          ),
+    );
+  }
+}
+
+// MARK: Employee List Item
+class _EmployeeListItem extends StatelessWidget {
+  final Employee employee;
+  final VoidCallback onDismissed;
+
+  const _EmployeeListItem({required this.employee, required this.onDismissed});
+
+  String _formatDateRange(DateTime? from, DateTime? to) {
+    final DateFormat formatter = DateFormat('d MMM, yyyy');
+    final fromStr = from != null ? formatter.format(from) : 'N/A';
+
+    if (to == null) {
+      return 'From $fromStr';
+    } else {
+      final toStr = formatter.format(to);
+      // Check if 'to' date is the same day or after 'from' date before showing range
+      if (!to.isBefore(from ?? DateTime(0))) {
+        return '$fromStr - $toStr';
+      } else {
+        return 'From $fromStr';
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dateString = _formatDateRange(employee.from, employee.to);
+
+    return Dismissible(
+      key: ValueKey(employee.internalId ?? UniqueKey()),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) => onDismissed(),
+      background: Container(
+        color: Colors.red[400],
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      // Wrap ListTile in Material for background color control
+      child: Material(
+        color: Theme.of(context).colorScheme.surface, // Use theme surface color
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 8.0,
+          ),
+          title: Text(
+            employee.name ?? 'No Name',
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              Text(
+                employee.role?.roleTitle ?? 'No Role',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withAlpha(190),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                dateString,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withAlpha(150),
+                ),
+              ),
+            ],
+          ),
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => AddEditEmployeeView(employee: employee),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _SwipeHint extends StatelessWidget {
+  const _SwipeHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 32.0),
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      child: Text(
+        'Swipe left to delete',
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }

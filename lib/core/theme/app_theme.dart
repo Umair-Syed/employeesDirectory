@@ -10,6 +10,7 @@ ThemeData getTheme(Brightness brightness) {
   final colorScheme = baseColorScheme.copyWith(
     primary: Colors.blue,
     onPrimary: Colors.white,
+    surfaceDim: Colors.grey.shade200,
   );
 
   final textTheme = ThemeData(brightness: brightness).textTheme;
