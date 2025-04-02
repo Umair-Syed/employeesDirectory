@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="employees_directory_syed_umair"
+        android:label="Employees Directory Umair"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

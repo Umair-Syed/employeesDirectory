@@ -1,4 +1,4 @@
-const appVersion = '1.1.0'; // TODO: Update this on release
+const appVersion = '1.0.0'; // TODO: Update this on release
 
 const appStoreId = '';
 const playStoreUrl = '';
