@@ -8,4 +8,5 @@ abstract class EmployeeDataSource {
   Future<void> undoDeleteEmployee(int id);
   Future<void> permanentlyDeleteEmployee(int id);
   Stream<List<Employee>> watchEmployees();
+  Future<void> cleanUpDeletedEmployees();
 }

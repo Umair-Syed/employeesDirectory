@@ -78,4 +78,10 @@ class EmployeeSembastDataSource implements EmployeeDataSource {
   Future<void> permanentlyDeleteEmployee(int internalId) async {
     await _employeeStore.record(internalId).delete(await _db);
   }
+
+  @override
+  Future<void> cleanUpDeletedEmployees() async {
+    final finder = Finder(filter: Filter.equals('deleted', true));
+    await _employeeStore.delete(await _db, finder: finder);
+  }
 }

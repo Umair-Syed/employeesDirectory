@@ -52,6 +52,8 @@ final class EmployeePermanentlyDelete extends EmployeeEvent {
   List<Object> get props => [id];
 }
 
+final class EmployeeCleanUpDeletedEmployees extends EmployeeEvent {}
+
 class EmployeeListUpdated extends EmployeeEvent {
   final List<Employee> employees;
   EmployeeListUpdated(this.employees);

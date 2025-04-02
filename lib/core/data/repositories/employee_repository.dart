@@ -8,4 +8,5 @@ abstract class EmployeeRepository {
   Future<void> deleteEmployee(int id);
   Future<void> undoDeleteEmployee(int id);
   Future<void> permanentlyDeleteEmployee(int id);
+  Future<void> cleanUpDeletedEmployees();
 }

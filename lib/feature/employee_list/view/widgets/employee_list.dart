@@ -270,7 +270,6 @@ void showSnackBarWithUndo(BuildContext context, Employee employee) {
   Timer? permanentDeleteTimer;
 
   final messenger = ScaffoldMessenger.of(context);
-  // TODO: App can be killed before the timer is up, so we need to handle this
   permanentDeleteTimer = Timer(const Duration(seconds: 5), () {
     bloc.add(EmployeePermanentlyDelete(employeeId));
   });

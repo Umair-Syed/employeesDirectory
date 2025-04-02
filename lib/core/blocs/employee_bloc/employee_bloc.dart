@@ -22,6 +22,7 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
     on<EmployeeDelete>(_onEmployeeDelete);
     on<EmployeeUndoDelete>(_onEmployeeUndoDelete);
     on<EmployeePermanentlyDelete>(_onEmployeePermanentlyDelete);
+    on<EmployeeCleanUpDeletedEmployees>(_onEmployeeCleanUpDeletedEmployees);
     on<EmployeeListUpdated>(_onEmployeeListUpdated);
     on<EmployeeError>(_onEmployeeError);
     _listenToEmployeeUpdates();
@@ -121,6 +122,13 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
 
   void _onEmployeeError(EmployeeError event, Emitter<EmployeeState> emit) {
     emit(state.copyWith(status: EmployeeStatus.error, error: event.message));
+  }
+
+  Future<void> _onEmployeeCleanUpDeletedEmployees(
+    EmployeeCleanUpDeletedEmployees event,
+    Emitter<EmployeeState> emit,
+  ) async {
+    await _employeeRepository.cleanUpDeletedEmployees();
   }
 
   @override

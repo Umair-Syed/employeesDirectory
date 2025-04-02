@@ -41,4 +41,9 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
   Future<void> updateEmployee(Employee employee) {
     return dataSource.updateEmployee(employee);
   }
+
+  @override
+  Future<void> cleanUpDeletedEmployees() {
+    return dataSource.cleanUpDeletedEmployees();
+  }
 }
