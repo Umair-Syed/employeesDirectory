@@ -6,6 +6,7 @@ import 'package:employees_directory_syed_umair/core/extensions/context.dart';
 import 'package:employees_directory_syed_umair/feature/add_edit_employee/view/screens/add_edit_employee_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:intl/intl.dart'; // Added for date formatting
 
 class EmployeeList extends StatefulWidget {
@@ -134,9 +135,17 @@ class _EmployeeListSliver extends StatelessWidget {
       itemCount: list.length,
       itemBuilder: (context, index) {
         final employee = list[index];
-        return _EmployeeListItem(
-          employee: employee,
-          onDismissed: () => onDismissed(employee),
+        return AnimationConfiguration.staggeredList(
+          position: index,
+          duration: const Duration(milliseconds: 375),
+          child: ScaleAnimation(
+            child: FadeInAnimation(
+              child: _EmployeeListItem(
+                employee: employee,
+                onDismissed: () => onDismissed(employee),
+              ),
+            ),
+          ),
         );
       },
       separatorBuilder:
