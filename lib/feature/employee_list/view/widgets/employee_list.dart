@@ -73,32 +73,36 @@ class _EmployeeListState extends State<EmployeeList> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      alignment: Alignment.center,
       color: Theme.of(context).colorScheme.surfaceDim,
-      child: CustomScrollView(
-        slivers: [
-          if (_currentEmployees.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: _SectionHeader(title: 'Current employees'),
-            ),
-            _EmployeeListSliver(
-              list: _currentEmployees,
-              onDismissed:
-                  (employee) => _handleDismiss(context, employee, true),
-            ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: CustomScrollView(
+          slivers: [
+            if (_currentEmployees.isNotEmpty) ...[
+              SliverToBoxAdapter(
+                child: _SectionHeader(title: 'Current employees'),
+              ),
+              _EmployeeListSliver(
+                list: _currentEmployees,
+                onDismissed:
+                    (employee) => _handleDismiss(context, employee, true),
+              ),
+            ],
+            if (_previousEmployees.isNotEmpty) ...[
+              SliverToBoxAdapter(
+                child: _SectionHeader(title: 'Previous employees'),
+              ),
+              _EmployeeListSliver(
+                list: _previousEmployees,
+                onDismissed:
+                    (employee) => _handleDismiss(context, employee, false),
+              ),
+            ],
+            if (_currentEmployees.isNotEmpty || _previousEmployees.isNotEmpty)
+              const SliverToBoxAdapter(child: _SwipeHint()),
           ],
-          if (_previousEmployees.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: _SectionHeader(title: 'Previous employees'),
-            ),
-            _EmployeeListSliver(
-              list: _previousEmployees,
-              onDismissed:
-                  (employee) => _handleDismiss(context, employee, false),
-            ),
-          ],
-          if (_currentEmployees.isNotEmpty || _previousEmployees.isNotEmpty)
-            const SliverToBoxAdapter(child: _SwipeHint()),
-        ],
+        ),
       ),
     );
   }
@@ -110,8 +114,14 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shouldPaddStart = MediaQuery.of(context).size.width < 600;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+      padding: EdgeInsets.fromLTRB(
+        shouldPaddStart ? 16.0 : 0.0,
+        8.0,
+        16.0,
+        8.0,
+      ),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -186,60 +196,65 @@ class _EmployeeListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateString = _formatDateRange(employee.from, employee.to);
 
-    return Dismissible(
-      key: ValueKey(employee.internalId ?? UniqueKey()),
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) => onDismissed(),
-      background: Container(
-        color: Colors.red[400],
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
-      ),
-      child: Material(
-        color: Theme.of(context).colorScheme.surface,
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 8.0,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Dismissible(
+          key: ValueKey(employee.internalId ?? UniqueKey()),
+          direction: DismissDirection.endToStart,
+          onDismissed: (direction) => onDismissed(),
+          background: Container(
+            color: Colors.red[400],
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: const Icon(Icons.delete_outline, color: Colors.white),
           ),
-          title: Text(
-            employee.name ?? 'No Name',
-            style: const TextStyle(fontWeight: FontWeight.w500),
+          child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              title: Text(
+                employee.name ?? 'No Name',
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 4),
+                  Text(
+                    employee.role?.roleTitle ?? 'No Role',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withAlpha(190),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    dateString,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withAlpha(150),
+                    ),
+                  ),
+                ],
+              ),
+              onTap: () async {
+                final result = await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AddEditEmployeeView(employee: employee),
+                  ),
+                );
+                if (result == 'deleted' && context.mounted) {
+                  showSnackBarWithUndo(context, employee);
+                }
+              },
+            ),
           ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 4),
-              Text(
-                employee.role?.roleTitle ?? 'No Role',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withAlpha(190),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                dateString,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withAlpha(150),
-                ),
-              ),
-            ],
-          ),
-          onTap: () async {
-            final result = await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => AddEditEmployeeView(employee: employee),
-              ),
-            );
-            if (result == 'deleted' && context.mounted) {
-              showSnackBarWithUndo(context, employee);
-            }
-          },
         ),
       ),
     );
@@ -251,10 +266,14 @@ class _SwipeHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shouldPaddStart = MediaQuery.of(context).size.width < 600;
     return Container(
       margin: const EdgeInsets.only(bottom: 32.0),
       alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      padding: EdgeInsets.symmetric(
+        vertical: 12.0,
+        horizontal: shouldPaddStart ? 16.0 : 0.0,
+      ),
       child: Text(
         'Swipe left to delete',
         style: Theme.of(

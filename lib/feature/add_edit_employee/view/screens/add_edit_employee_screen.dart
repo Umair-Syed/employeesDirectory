@@ -55,95 +55,104 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeView> {
             ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // MARK: - Name Field
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Employee name',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // MARK: - Role
-              InkWell(
-                onTap: () => _showRoleBottomSheet(),
-                child: FormField<Role>(
-                  validator:
-                      (value) =>
-                          _selectedRole == null ? 'Please select a role' : null,
-                  builder: (FormFieldState<Role> state) {
-                    return InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: 'Select role',
-                        prefixIcon: const Icon(Icons.work_outline),
-                        suffixIcon: Icon(
-                          Icons.arrow_drop_down_rounded,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        border: const OutlineInputBorder(),
-                        errorText: state.errorText,
-                      ),
-                      isEmpty: _selectedRole == null,
-                      child: Text(_selectedRole?.roleTitle ?? ''),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // MARK: - Date Picker
-              Row(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: ListView(
                 children: [
-                  Expanded(
-                    child: DatePickerField(
-                      label: 'From',
-                      selectedDate: _selectedFromDate,
-                      onDateSelected: (date) {
-                        setState(() {
-                          _selectedFromDate = date;
-                          if (_selectedToDate != null &&
-                              _selectedToDate!.isBefore(_selectedFromDate!)) {
-                            _selectedToDate = null;
-                          }
-                        });
+                  // MARK: - Name Field
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Employee name',
+                      prefixIcon: Icon(Icons.person_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // MARK: - Role
+                  InkWell(
+                    onTap: () => _showRoleBottomSheet(),
+                    child: FormField<Role>(
+                      validator:
+                          (value) =>
+                              _selectedRole == null
+                                  ? 'Please select a role'
+                                  : null,
+                      builder: (FormFieldState<Role> state) {
+                        return InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Select role',
+                            prefixIcon: const Icon(Icons.work_outline),
+                            suffixIcon: Icon(
+                              Icons.arrow_drop_down_rounded,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            border: const OutlineInputBorder(),
+                            errorText: state.errorText,
+                          ),
+                          isEmpty: _selectedRole == null,
+                          child: Text(_selectedRole?.roleTitle ?? ''),
+                        );
                       },
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Icon(Icons.arrow_forward, color: Colors.blue),
+                  const SizedBox(height: 16),
+
+                  // MARK: - Date Picker
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DatePickerField(
+                          label: 'From',
+                          selectedDate: _selectedFromDate,
+                          onDateSelected: (date) {
+                            setState(() {
+                              _selectedFromDate = date;
+                              if (_selectedToDate != null &&
+                                  _selectedToDate!.isBefore(
+                                    _selectedFromDate!,
+                                  )) {
+                                _selectedToDate = null;
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Icon(Icons.arrow_forward, color: Colors.blue),
+                      ),
+                      Expanded(
+                        child: DatePickerField(
+                          label: 'To',
+                          selectedDate: _selectedToDate,
+                          isToDate: true,
+                          fromDate: _selectedFromDate,
+                          onDateSelected: (date) {
+                            setState(() {
+                              _selectedToDate = date;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: DatePickerField(
-                      label: 'To',
-                      selectedDate: _selectedToDate,
-                      isToDate: true,
-                      fromDate: _selectedFromDate,
-                      onDateSelected: (date) {
-                        setState(() {
-                          _selectedToDate = date;
-                        });
-                      },
-                    ),
-                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
         ),
       ),
