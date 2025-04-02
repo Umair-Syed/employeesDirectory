@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'custom_date_picker_dialog.dart';
 
 class DatePickerField extends StatelessWidget {
   final String label;
   final DateTime? selectedDate;
-  final Function(DateTime) onDateSelected;
+  final Function(DateTime?) onDateSelected;
   final bool isToDate;
+  final DateTime? fromDate;
 
   const DatePickerField({
     super.key,
@@ -13,6 +15,7 @@ class DatePickerField extends StatelessWidget {
     required this.selectedDate,
     required this.onDateSelected,
     this.isToDate = false,
+    this.fromDate,
   });
 
   @override
@@ -34,7 +37,7 @@ class DatePickerField extends StatelessWidget {
         child: Text(
           selectedDate != null
               ? dateFormat.format(selectedDate!)
-              : (isToDate ? 'No date' : 'Today'),
+              : (isToDate ? 'No date' : label),
           style: TextStyle(
             color:
                 selectedDate != null
@@ -47,19 +50,25 @@ class DatePickerField extends StatelessWidget {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime initialDate = selectedDate ?? DateTime.now();
+    final DateTime? initialDialogDate =
+        selectedDate ?? (isToDate ? null : DateTime.now());
     final DateTime firstDate = DateTime(2022);
-    final DateTime lastDate = DateTime.now().add(const Duration(days: 365));
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
+    final DateTime lastDate = DateTime.now().add(
+      const Duration(days: 10 * 365),
     );
 
-    if (picked != null) {
-      onDateSelected(picked);
-    }
+    showDialog<DateTime?>(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomDatePickerDialog(
+          initialDate: initialDialogDate,
+          firstDate: firstDate,
+          lastDate: lastDate,
+          onDateSelected: onDateSelected,
+          isToDate: isToDate,
+          fromDate: fromDate,
+        );
+      },
+    );
   }
 }

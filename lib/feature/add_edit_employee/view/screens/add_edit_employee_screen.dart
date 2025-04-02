@@ -132,6 +132,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeView> {
                       label: 'To',
                       selectedDate: _selectedToDate,
                       isToDate: true,
+                      fromDate: _selectedFromDate,
                       onDateSelected: (date) {
                         setState(() {
                           _selectedToDate = date;
@@ -242,7 +243,16 @@ class SaveCancelBottomBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          TextButton(onPressed: onCancel, child: const Text('Cancel')),
+          TextButton(
+            onPressed: onCancel,
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withAlpha(20),
+              foregroundColor: Theme.of(context).colorScheme.primary,
+            ),
+            child: const Text('Cancel'),
+          ),
           const SizedBox(width: 16),
           ElevatedButton(
             onPressed: onSave,
