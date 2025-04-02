@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 extension Context on BuildContext {
-  void showSnackBarMessage(String message,
-      {bool isError = false,
-      bool isSuccess = false,
-      int? duration,
-      String? actionLabel,
-      void Function()? actionCallback}) {
+  void showSnackBarMessage(
+    String message, {
+    bool isError = false,
+    bool isSuccess = false,
+    int? duration,
+    String? actionLabel,
+    void Function()? actionCallback,
+    ScaffoldMessengerState? messenger,
+  }) {
     final theme = Theme.of(this);
     final Color? foregroundColor;
     final Color? backgroundColor;
@@ -16,7 +19,7 @@ extension Context on BuildContext {
       foregroundColor = theme.colorScheme.onError;
       backgroundColor = theme.colorScheme.error;
     } else if (isSuccess) {
-      foregroundColor = theme.colorScheme.onPrimary;
+      foregroundColor = theme.colorScheme.onSurface;
       backgroundColor = theme.colorScheme.primaryContainer;
     } else {
       foregroundColor = theme.colorScheme.onPrimary;
@@ -24,16 +27,19 @@ extension Context on BuildContext {
     }
 
     FocusScope.of(this).unfocus();
-    ScaffoldMessenger.of(this).showSnackBar(
+    final scaffoldMessenger = messenger ?? ScaffoldMessenger.of(this);
+
+    scaffoldMessenger.showSnackBar(
       SnackBar(
         duration: Duration(milliseconds: duration ?? 2000),
         backgroundColor: backgroundColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(
-            color: isError
-                ? theme.colorScheme.onError
-                : isSuccess
+            color:
+                isError
+                    ? theme.colorScheme.onError
+                    : isSuccess
                     ? Colors.green.shade700
                     : theme.colorScheme.onPrimaryContainer,
             width: 0.7,
@@ -56,6 +62,7 @@ extension Context on BuildContext {
                 child: TextButton(
                   onPressed: () {
                     actionCallback?.call();
+                    scaffoldMessenger.hideCurrentSnackBar();
                   },
                   child: Text(
                     actionLabel,
