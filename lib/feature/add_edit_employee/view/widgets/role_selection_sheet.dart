@@ -13,39 +13,34 @@ class RoleSelectionBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                const Text(
-                  'Select Role',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView.builder(
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12.0)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListView.separated(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: Role.values.length,
+              separatorBuilder:
+                  (context, index) => Divider(
+                    height: 1,
+                    color: Theme.of(context).colorScheme.outline.withAlpha(40),
+                  ),
               itemBuilder: (context, index) {
                 final role = Role.values[index];
                 return ListTile(
-                  title: Text(role.roleTitle),
-                  trailing:
-                      selectedRole == role
-                          ? const Icon(Icons.check, color: Colors.blue)
-                          : null,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4.0),
+                  title: Center(
+                    child: Text(
+                      role.roleTitle,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
                   onTap: () {
                     onRoleSelected(role);
                     Navigator.pop(context);
@@ -53,8 +48,8 @@ class RoleSelectionBottomSheet extends StatelessWidget {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

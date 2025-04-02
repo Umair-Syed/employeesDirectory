@@ -26,7 +26,9 @@ class DatePickerField extends StatelessWidget {
       onTap: () => _selectDate(context),
       child: InputDecorator(
         decoration: InputDecoration(
-          labelText: selectedDate == null ? label : null,
+          labelText: null,
+          floatingLabelBehavior: FloatingLabelBehavior.always,
+          labelStyle: const TextStyle(height: 0, color: Colors.transparent),
           prefixIcon: const Icon(Icons.calendar_today_outlined),
           border: const OutlineInputBorder(),
           contentPadding: const EdgeInsets.symmetric(

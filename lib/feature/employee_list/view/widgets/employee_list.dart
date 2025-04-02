@@ -147,7 +147,7 @@ class _EmployeeListSliver extends StatelessWidget {
         final employee = list[index];
         return AnimationConfiguration.staggeredList(
           position: index,
-          duration: const Duration(milliseconds: 375),
+          duration: const Duration(milliseconds: 300),
           child: ScaleAnimation(
             child: FadeInAnimation(
               child: _EmployeeListItem(

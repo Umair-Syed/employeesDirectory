@@ -41,6 +41,7 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(
@@ -150,15 +151,26 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeView> {
                     ],
                   ),
                   const SizedBox(height: 24),
+
+                  // Add space for the bottom bar to prevent content from being hidden
+                  SizedBox(
+                    height:
+                        MediaQuery.of(context).viewInsets.bottom > 0 ? 80 : 0,
+                  ),
                 ],
               ),
             ),
           ),
         ),
       ),
-      bottomNavigationBar: SaveCancelBottomBar(
-        onSave: _saveForm,
-        onCancel: () => Navigator.of(context).pop(),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SaveCancelBottomBar(
+          onSave: _saveForm,
+          onCancel: () => Navigator.of(context).pop(),
+        ),
       ),
     );
   }
@@ -213,9 +225,8 @@ class _AddEditEmployeeViewState extends State<AddEditEmployeeView> {
   void _showRoleBottomSheet() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return RoleSelectionBottomSheet(
           selectedRole: _selectedRole,
@@ -242,36 +253,41 @@ class SaveCancelBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        8,
-        16,
-        16 + MediaQuery.of(context).padding.bottom,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withAlpha(40),
+            width: 1,
+          ),
+        ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: onCancel,
-            style: TextButton.styleFrom(
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.primary.withAlpha(20),
-              foregroundColor: Theme.of(context).colorScheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              onPressed: onCancel,
+              style: TextButton.styleFrom(
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withAlpha(20),
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
+              child: const Text('Cancel'),
             ),
-            child: const Text('Cancel'),
-          ),
-          const SizedBox(width: 16),
-          ElevatedButton(
-            onPressed: onSave,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: onSave,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+              child: const Text('Save'),
             ),
-            child: const Text('Save'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

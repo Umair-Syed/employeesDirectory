@@ -12,9 +12,12 @@ class EmptyState extends StatelessWidget {
         children: [
           Image.asset(Assets.noRecords),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No employee records found',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(200),
+            ),
           ),
         ],
       ),
