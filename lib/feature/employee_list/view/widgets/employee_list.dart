@@ -290,6 +290,7 @@ void handleDelete(BuildContext context, Employee employee) {
   showSnackBarWithUndo(context, employee);
 }
 
+// MARK: Snackbar with undo
 void showSnackBarWithUndo(BuildContext context, Employee employee) {
   if (employee.internalId == null) return; // Guard clause
 

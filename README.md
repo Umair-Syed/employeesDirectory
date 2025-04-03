@@ -1,16 +1,36 @@
-# employees_directory_syed_umair
+# Employees Directory
 
-A new Flutter project.
+A Flutter application for managing employee information.
+
+Website: [Employees Directory](https://umair-syed.github.io/employeesDirectory/)
+
+## About
+
+This application demonstrates a well-structured Flutter project with:
+
+- **Sembast database** for data persistence (Supports mobile and Web)
+- **BLoC pattern** with a single EmployeeBloc injected at the root widget
+- **Repository pattern** implementation for loose coupling, making the code more testable and allowing for easy database switching
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This project requires Flutter 3.29.
 
-A few resources to get you started if this is your first Flutter project:
+### Setup Instructions:
+
+1. Install Flutter 3.29 or later
+2. Clone the repository
+3. Install dependencies:
+   ```
+   flutter pub get
+   ```
+4. Run the app:
+   ```
+   flutter run
+   ```
+
+### Additional Resources
 
 - [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [Flutter documentation](https://docs.flutter.dev/)
